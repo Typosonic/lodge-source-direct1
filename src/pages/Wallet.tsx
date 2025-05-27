@@ -92,7 +92,11 @@ const Wallet = () => {
             </ol>
             <div className="flex items-center gap-4 mb-4">
               <a href="https://cash.app/$Typosonic" target="_blank" rel="noopener noreferrer" className="text-green-400 underline font-semibold">Pay via Cash App</a>
-              <img src="/cashapp-qr.png" alt="Cash App QR Code" className="w-28 h-28 rounded bg-white p-1 border border-green-400" />
+              <img
+                src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://cash.app/$Typosonic"
+                alt="Cash App QR Code"
+                className="w-28 h-28 rounded bg-white p-1 border border-green-400"
+              />
             </div>
             {/* Confirmation Form */}
             <div className="mt-4">
@@ -153,7 +157,7 @@ const Wallet = () => {
                   </div>
                   <GradientButton
                     type="submit"
-                    className="w-full bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:from-green-600 hover:to-green-800 text-white font-bold py-2 px-4 rounded shadow button-glow"
+                    className="w-full button-glow"
                   >
                     ✅ Submit Confirmation
                   </GradientButton>
