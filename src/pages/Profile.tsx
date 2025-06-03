@@ -1,10 +1,11 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Input, AddressAutocomplete } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import { GradientButton } from "@/components/ui/gradient-button";
 import Layout from "@/components/layout/Layout";
 import { toast } from "sonner";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -23,14 +24,13 @@ export default function ProfilePage() {
       setEmail(user.email || "");
       supabase
         .from("profiles")
-        .select("full_name,username,shipping_address")
+        .select("full_name,username")
         .eq("id", user.id)
         .single()
         .then(({ data, error }) => {
           if (data) {
             setFullName(data.full_name || "");
             setUsername(data.username || "");
-            setShipping(data.shipping_address || "");
           }
         });
     }
@@ -43,7 +43,7 @@ export default function ProfilePage() {
     try {
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ full_name: fullName, username, shipping_address: shipping })
+        .update({ full_name: fullName, username })
         .eq("id", user.id);
       if (updateError) {
         setError("Failed to update profile.");
@@ -101,43 +101,45 @@ export default function ProfilePage() {
   };
 
   return (
-    <Layout>
-      <div className="max-w-lg mx-auto py-12 px-4">
-        <h1 className="font-orbitron text-3xl md:text-4xl font-bold mb-8 text-center">My Profile</h1>
-        <div className="space-y-6 bg-lodge-card-bg border border-white/10 rounded-xl p-6">
-          <div>
-            <label className="block text-white/80 mb-1 font-orbitron">Full Name</label>
-            <Input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Full Name" />
+    <ErrorBoundary>
+      <Layout>
+        <div className="max-w-lg mx-auto py-12 px-4">
+          <h1 className="font-orbitron text-3xl md:text-4xl font-bold mb-8 text-center">My Profile</h1>
+          <div className="space-y-6 bg-lodge-card-bg border border-white/10 rounded-xl p-6">
+            <div>
+              <label className="block text-white/80 mb-1 font-orbitron">Full Name</label>
+              <Input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Full Name" />
+            </div>
+            <div>
+              <label className="block text-white/80 mb-1 font-orbitron">Username</label>
+              <Input value={username} onChange={e => setUsername(e.target.value)} placeholder="Username" />
+            </div>
+            <div>
+              <label className="block text-white/80 mb-1 font-orbitron">Email</label>
+              <Input value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" type="email" />
+              <GradientButton className="mt-2 w-full" onClick={handleChangeEmail} disabled={loading}>Update Email</GradientButton>
+            </div>
+            <div>
+              <label className="block text-white/80 mb-1 font-orbitron">Shipping Address</label>
+              <Input
+                value={shipping}
+                onChange={e => setShipping(e.target.value)}
+                placeholder="Shipping Address"
+                className="bg-lodge-dark-bg border-white/10"
+              />
+            </div>
+            <GradientButton className="w-full" onClick={handleSave} disabled={loading}>Save Profile</GradientButton>
+            <div className="pt-4 border-t border-white/10">
+              <label className="block text-white/80 mb-1 font-orbitron">Change Password</label>
+              <Input value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} placeholder="Current Password" type="password" className="mb-2" />
+              <Input value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="New Password" type="password" className="mb-2" />
+              <GradientButton className="w-full" onClick={handleChangePassword} disabled={loading}>Update Password</GradientButton>
+            </div>
+            {success && <div className="text-green-400 text-center font-medium mt-2">{success}</div>}
+            {error && <div className="text-red-400 text-center font-medium mt-2">{error}</div>}
           </div>
-          <div>
-            <label className="block text-white/80 mb-1 font-orbitron">Username</label>
-            <Input value={username} onChange={e => setUsername(e.target.value)} placeholder="Username" />
-          </div>
-          <div>
-            <label className="block text-white/80 mb-1 font-orbitron">Email</label>
-            <Input value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" type="email" />
-            <GradientButton className="mt-2 w-full" onClick={handleChangeEmail} disabled={loading}>Update Email</GradientButton>
-          </div>
-          <div>
-            <label className="block text-white/80 mb-1 font-orbitron">Shipping Address</label>
-            <AddressAutocomplete
-              value={shipping}
-              onChange={val => setShipping(val)}
-              placeholder="Shipping Address"
-              className="bg-lodge-dark-bg border-white/10"
-            />
-          </div>
-          <GradientButton className="w-full" onClick={handleSave} disabled={loading}>Save Profile</GradientButton>
-          <div className="pt-4 border-t border-white/10">
-            <label className="block text-white/80 mb-1 font-orbitron">Change Password</label>
-            <Input value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} placeholder="Current Password" type="password" className="mb-2" />
-            <Input value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="New Password" type="password" className="mb-2" />
-            <GradientButton className="w-full" onClick={handleChangePassword} disabled={loading}>Update Password</GradientButton>
-          </div>
-          {success && <div className="text-green-400 text-center font-medium mt-2">{success}</div>}
-          {error && <div className="text-red-400 text-center font-medium mt-2">{error}</div>}
         </div>
-      </div>
-    </Layout>
+      </Layout>
+    </ErrorBoundary>
   );
 } 

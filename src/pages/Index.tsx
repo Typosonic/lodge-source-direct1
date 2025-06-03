@@ -81,6 +81,11 @@ const Index = () => {
                 <GradientButton asChild>
                   <Link to="/catalog">Browse Products</Link>
                 </GradientButton>
+                <GradientButton asChild>
+                  <a href="https://t.me/onexonelodge" target="_blank" rel="noopener noreferrer">
+                    Join our Telegram
+                  </a>
+                </GradientButton>
               </div>
             </div>
           </div>
