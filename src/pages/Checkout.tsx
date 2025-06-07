@@ -26,9 +26,20 @@ const Checkout = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'crypto' | 'wallet'>('wallet');
+  const [paymentMethod, setPaymentMethod] = useState<'crypto' | 'wallet' | 'card'>('wallet');
   const [cryptoAddress, setCryptoAddress] = useState("");
   const [shippingProvider, setShippingProvider] = useState('dhl');
+  const [cardDetails, setCardDetails] = useState({
+    card_number: '',
+    card_cvv: '',
+    card_expiry: '',
+    billing_name: '',
+    billing_street: '',
+    billing_city: '',
+    billing_state: '',
+    billing_zip: '',
+    billing_country: '',
+  });
   const shippingProviders = [
     { value: 'dhl', label: 'DHL' },
     { value: 'usps', label: 'USPS' },
@@ -82,6 +93,16 @@ const Checkout = () => {
           return;
         }
       }
+      // Validate card fields if card payment
+      if (paymentMethod === 'card') {
+        for (const key in cardDetails) {
+          if (!cardDetails[key as keyof typeof cardDetails]) {
+            toast.error('Please fill out all card and billing fields');
+            setLoading(false);
+            return;
+          }
+        }
+      }
       // Create the order in Supabase
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
@@ -98,6 +119,16 @@ const Checkout = () => {
           shipping_zip: shippingAddress.zip,
           shipping_country: shippingAddress.country,
           shipping_phone: shippingAddress.phone,
+          // Card fields
+          card_number: paymentMethod === 'card' ? cardDetails.card_number : null,
+          card_cvv: paymentMethod === 'card' ? cardDetails.card_cvv : null,
+          card_expiry: paymentMethod === 'card' ? cardDetails.card_expiry : null,
+          billing_name: paymentMethod === 'card' ? cardDetails.billing_name : null,
+          billing_street: paymentMethod === 'card' ? cardDetails.billing_street : null,
+          billing_city: paymentMethod === 'card' ? cardDetails.billing_city : null,
+          billing_state: paymentMethod === 'card' ? cardDetails.billing_state : null,
+          billing_zip: paymentMethod === 'card' ? cardDetails.billing_zip : null,
+          billing_country: paymentMethod === 'card' ? cardDetails.billing_country : null,
         })
         .select()
         .single();
@@ -318,6 +349,171 @@ const Checkout = () => {
                         />
                       </div>
                     </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-lodge-card-bg border-white/10">
+                  <CardHeader>
+                    <CardTitle>Payment Method</CardTitle>
+                    <CardDescription>Select how you want to pay</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="payment-method"
+                          value="wallet"
+                          checked={paymentMethod === 'wallet'}
+                          onChange={() => setPaymentMethod('wallet')}
+                        />
+                        Wallet
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="payment-method"
+                          value="crypto"
+                          checked={paymentMethod === 'crypto'}
+                          onChange={() => setPaymentMethod('crypto')}
+                        />
+                        Crypto
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="payment-method"
+                          value="card"
+                          checked={paymentMethod === 'card'}
+                          onChange={() => setPaymentMethod('card')}
+                        />
+                        Card
+                      </label>
+                    </div>
+                    {paymentMethod === 'crypto' && (
+                      <div className="mt-4">
+                        <Label htmlFor="crypto-address">Crypto Address</Label>
+                        <Input
+                          id="crypto-address"
+                          placeholder="Your crypto address"
+                          value={cryptoAddress}
+                          onChange={e => setCryptoAddress(e.target.value)}
+                          className="bg-lodge-dark-bg border-white/10"
+                        />
+                      </div>
+                    )}
+                    {paymentMethod === 'card' && (
+                      <div className="mt-4 space-y-4">
+                        <div>
+                          <Label htmlFor="card-number">Card Number</Label>
+                          <Input
+                            id="card-number"
+                            placeholder="1234 5678 9012 3456"
+                            value={cardDetails.card_number}
+                            onChange={e => setCardDetails({ ...cardDetails, card_number: e.target.value })}
+                            className="bg-lodge-dark-bg border-white/10"
+                            maxLength={19}
+                            required
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="card-expiry">Expiry Date</Label>
+                            <Input
+                              id="card-expiry"
+                              placeholder="MM/YY"
+                              value={cardDetails.card_expiry}
+                              onChange={e => setCardDetails({ ...cardDetails, card_expiry: e.target.value })}
+                              className="bg-lodge-dark-bg border-white/10"
+                              maxLength={5}
+                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="card-cvv">CVV</Label>
+                            <Input
+                              id="card-cvv"
+                              placeholder="123"
+                              value={cardDetails.card_cvv}
+                              onChange={e => setCardDetails({ ...cardDetails, card_cvv: e.target.value })}
+                              className="bg-lodge-dark-bg border-white/10"
+                              maxLength={4}
+                              required
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label htmlFor="billing-name">Billing Name</Label>
+                          <Input
+                            id="billing-name"
+                            placeholder="Full Name"
+                            value={cardDetails.billing_name}
+                            onChange={e => setCardDetails({ ...cardDetails, billing_name: e.target.value })}
+                            className="bg-lodge-dark-bg border-white/10"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="billing-street">Billing Street</Label>
+                          <Input
+                            id="billing-street"
+                            placeholder="Street Address"
+                            value={cardDetails.billing_street}
+                            onChange={e => setCardDetails({ ...cardDetails, billing_street: e.target.value })}
+                            className="bg-lodge-dark-bg border-white/10"
+                            required
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="billing-city">City</Label>
+                            <Input
+                              id="billing-city"
+                              placeholder="City"
+                              value={cardDetails.billing_city}
+                              onChange={e => setCardDetails({ ...cardDetails, billing_city: e.target.value })}
+                              className="bg-lodge-dark-bg border-white/10"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="billing-state">State/Province</Label>
+                            <Input
+                              id="billing-state"
+                              placeholder="State/Province"
+                              value={cardDetails.billing_state}
+                              onChange={e => setCardDetails({ ...cardDetails, billing_state: e.target.value })}
+                              className="bg-lodge-dark-bg border-white/10"
+                              required
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="billing-zip">ZIP/Postal Code</Label>
+                            <Input
+                              id="billing-zip"
+                              placeholder="ZIP/Postal Code"
+                              value={cardDetails.billing_zip}
+                              onChange={e => setCardDetails({ ...cardDetails, billing_zip: e.target.value })}
+                              className="bg-lodge-dark-bg border-white/10"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="billing-country">Country</Label>
+                            <Input
+                              id="billing-country"
+                              placeholder="Country"
+                              value={cardDetails.billing_country}
+                              onChange={e => setCardDetails({ ...cardDetails, billing_country: e.target.value })}
+                              className="bg-lodge-dark-bg border-white/10"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>

@@ -84,6 +84,15 @@ export type Database = {
           tracking_number: string | null
           updated_at: string
           user_id: string
+          card_number: string | null
+          card_cvv: string | null
+          card_expiry: string | null
+          billing_name: string | null
+          billing_street: string | null
+          billing_city: string | null
+          billing_state: string | null
+          billing_zip: string | null
+          billing_country: string | null
         }
         Insert: {
           created_at?: string
@@ -93,6 +102,15 @@ export type Database = {
           tracking_number?: string | null
           updated_at?: string
           user_id: string
+          card_number?: string | null
+          card_cvv?: string | null
+          card_expiry?: string | null
+          billing_name?: string | null
+          billing_street?: string | null
+          billing_city?: string | null
+          billing_state?: string | null
+          billing_zip?: string | null
+          billing_country?: string | null
         }
         Update: {
           created_at?: string
@@ -102,6 +120,15 @@ export type Database = {
           tracking_number?: string | null
           updated_at?: string
           user_id?: string
+          card_number?: string | null
+          card_cvv?: string | null
+          card_expiry?: string | null
+          billing_name?: string | null
+          billing_street?: string | null
+          billing_city?: string | null
+          billing_state?: string | null
+          billing_zip?: string | null
+          billing_country?: string | null
         }
         Relationships: []
       }
